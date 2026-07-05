@@ -1,0 +1,30 @@
+{
+  "name": "CivicAI",
+  "description": "An AI-powered public grievance and governance assistant for intelligent complaint management.",
+  "version": "1.0.0",
+  "author": "Your Team Name",
+  "project_type": "IBM watsonx Hackathon Project",
+  "technologies": [
+    "IBM watsonx Orchestrate",
+    "IBM Granite",
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "Bootstrap"
+  ],
+  "features": [
+    "Text Complaint Submission",
+    "Voice Complaint Submission",
+    "Image Complaint Support",
+    "AI Complaint Classification",
+    "Priority Detection",
+    "Department Routing",
+    "Duplicate Complaint Detection",
+    "Structured Complaint Summary",
+    "Knowledge Base",
+    "Speech-to-Text",
+    "Text-to-Speech"
+  ],
+  "deployment": "IBM Cloud",
+  "license": "MIT"
+}

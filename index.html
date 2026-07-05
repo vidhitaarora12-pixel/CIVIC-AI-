@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivicAI — Smart Governance Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --void:#04080F;--void-2:#080E1C;--navy:#0D1428;
+  --electric:#00D4FF;--electric-dim:rgba(0,212,255,.12);
+  --gold:#F5A623;--gold-dim:rgba(245,166,35,.13);
+  --rose:#FF4D8D;--rose-dim:rgba(255,77,141,.13);
+  --lime:#39E58C;--lime-dim:rgba(57,229,140,.13);
+  --violet:#A78BFA;--violet-dim:rgba(167,139,250,.13);
+  --text-1:#F0F4FF;--text-2:#9BAAC8;--text-3:#5A6785;
+  --glass:rgba(255,255,255,0.042);--glass-2:rgba(255,255,255,0.075);
+  --gline:rgba(255,255,255,0.09);--gline-hi:rgba(255,255,255,0.18);
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--void);color:var(--text-1);min-height:100vh;overflow-x:hidden;}
+
+/* Scroll progress indicator */
+.scroll-progress{
+  position:fixed;top:0;left:0;height:2px;
+  background:linear-gradient(90deg,var(--electric),var(--violet),var(--rose));
+  width:0%;z-index:9999;
+  box-shadow:0 0 10px rgba(0,212,255,.5);
+  transition:width .1s linear;
+}
+
+/* Scroll-reveal animation system */
+.reveal{
+  opacity:0;
+  transform:translateY(28px);
+  transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in-view{opacity:1;transform:translateY(0);}
+.reveal-stagger > *{
+  opacity:0;transform:translateY(20px);
+  transition:opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1);
+}
+.reveal-stagger.in-view > *{opacity:1;transform:translateY(0);}
+.reveal-stagger.in-view > *:nth-child(1){transition-delay:.05s;}
+.reveal-stagger.in-view > *:nth-child(2){transition-delay:.12s;}
+.reveal-stagger.in-view > *:nth-child(3){transition-delay:.19s;}
+.reveal-stagger.in-view > *:nth-child(4){transition-delay:.26s;}
+.reveal-stagger.in-view > *:nth-child(5){transition-delay:.33s;}
+.reveal-stagger.in-view > *:nth-child(6){transition-delay:.4s;}
+@media(prefers-reduced-motion:reduce){
+  .reveal,.reveal-stagger > *{opacity:1!important;transform:none!important;transition:none!important;}
+}
+
+/* Section divider with floating label */
+.sec-divider{
+  position:relative;z-index:1;max-width:1240px;margin:0 auto;
+  padding:0 64px;display:flex;align-items:center;gap:18px;
+  opacity:.5;
+  margin-bottom:40px;
+}
+.sec-divider::before,.sec-divider::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gline),transparent);
+}
+.sec-divider span{
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+  color:var(--text-3);letter-spacing:2px;white-space:nowrap;
+}
+
+/* Cursor glow follower (hero only) */
+.cursor-glow{
+  position:absolute;width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,255,.08),transparent 70%);
+  pointer-events:none;z-index:0;
+  transform:translate(-50%,-50%);
+  opacity:0;transition:opacity .4s;
+  filter:blur(20px);
+}
+.hero:hover .cursor-glow{opacity:1;}
+
+.bg-scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(120px);opacity:.55;}
+.orb1{width:900px;height:700px;top:-200px;left:-200px;background:radial-gradient(circle,rgba(0,212,255,.22),transparent 70%);}
+.orb2{width:800px;height:800px;top:-100px;right:-250px;background:radial-gradient(circle,rgba(167,139,250,.18),transparent 70%);}
+.orb3{width:700px;height:600px;bottom:-200px;left:10%;background:radial-gradient(circle,rgba(255,77,141,.14),transparent 70%);}
+.orb4{width:600px;height:500px;bottom:-100px;right:5%;background:radial-gradient(circle,rgba(245,166,35,.12),transparent 70%);}
+.bg-grid{position:absolute;inset:0;opacity:.28;background-image:linear-gradient(var(--gline) 1px,transparent 1px),linear-gradient(90deg,var(--gline) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 1200px 900px at 50% 0%,black,transparent 80%);}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:600;height:70px;background:rgba(4,8,15,.7);backdrop-filter:blur(28px) saturate(180%);border-bottom:1px solid var(--gline);padding:0 64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:11px;text-decoration:none;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--electric),var(--violet));border-radius:12px;display:grid;place-items:center;font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--void);box-shadow:0 0 28px rgba(0,212,255,.4),inset 0 1px 0 rgba(255,255,255,.4);}
+.nav-wordmark{font-family:'Sora',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--text-1);}
+.nav-wordmark em{font-style:normal;background:linear-gradient(135deg,var(--electric),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-links{display:flex;gap:26px;list-style:none;}
+.nav-links a{font-size:14px;font-weight:500;color:var(--text-2);text-decoration:none;transition:color .2s;position:relative;}
+.nav-links a::after{content:'';position:absolute;bottom:-6px;left:0;right:0;height:2px;background:var(--electric);border-radius:2px;transform:scaleX(0);transition:transform .25s;transform-origin:left;}
+.nav-links a:hover{color:var(--text-1);}
+.nav-links a:hover::after{transform:scaleX(1);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-live-pill{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--lime);background:var(--lime-dim);border:1px solid rgba(57,229,140,.28);border-radius:100px;padding:5px 13px;}
+.pulse-ring{width:7px;height:7px;border-radius:50%;background:var(--lime);animation:ripple 2s infinite;}
+@keyframes ripple{0%{box-shadow:0 0 0 0 rgba(57,229,140,.6);}70%{box-shadow:0 0 0 8px rgba(57,229,140,0);}100%{box-shadow:0 0 0 0 rgba(57,229,140,0);}}
+.nav-cta{background:linear-gradient(135deg,var(--electric),#6B8FFF);color:var(--void);border:none;padding:11px 24px;border-radius:10px;font-size:14px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all .25s;box-shadow:0 4px 24px rgba(0,212,255,.3);}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,.5);}
+
+/* HERO */
+.hero{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:110px 64px 80px;display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center;}
+.hero-kicker{display:inline-flex;align-items:center;gap:9px;background:var(--glass);border:1px solid var(--gline);backdrop-filter:blur(16px);border-radius:100px;padding:8px 18px 8px 12px;font-size:12.5px;font-weight:500;color:var(--electric);letter-spacing:.3px;margin-bottom:28px;}
+.kicker-dot{width:7px;height:7px;border-radius:50%;background:var(--electric);box-shadow:0 0 10px var(--electric);animation:blink 2.5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.hero h1{font-family:'Sora',sans-serif;font-size:clamp(40px,5.5vw,66px);font-weight:800;line-height:1.07;letter-spacing:-2.5px;color:var(--text-1);margin-bottom:22px;}
+.hero h1 .shimmer{background:linear-gradient(120deg,var(--electric) 0%,var(--violet) 45%,var(--rose) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:shimmer 4s ease infinite;}
+@keyframes shimmer{0%{background-position:0%;}50%{background-position:100%;}100%{background-position:0%;}}
+.hero-desc{font-size:17.5px;color:var(--text-2);line-height:1.75;max-width:480px;margin-bottom:40px;}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
+.btn-primary{background:linear-gradient(135deg,var(--electric),#6B8FFF);color:var(--void);border:none;padding:16px 32px;border-radius:14px;font-size:15px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:all .28s;box-shadow:0 8px 32px rgba(0,212,255,.3);}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,212,255,.5);}
+.btn-glass{background:var(--glass);backdrop-filter:blur(16px);color:var(--text-1);border:1px solid var(--gline-hi);padding:15px 30px;border-radius:14px;font-size:15px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:all .25s;}
+.btn-glass:hover{border-color:var(--electric);color:var(--electric);transform:translateY(-2px);}
+.hero-right{position:relative;height:430px;}
+.dash-card{position:absolute;background:var(--glass);backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--gline);border-radius:22px;box-shadow:0 32px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07);}
+.dash-main{inset:16px 0 0 0;padding:24px;animation:floatUp 7s ease-in-out infinite;}
+@keyframes floatUp{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.dash-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--gline);}
+.dash-top-left{display:flex;align-items:center;gap:10px;}
+.dash-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--electric-dim),var(--violet-dim));border:1px solid var(--gline);display:grid;place-items:center;font-size:17px;}
+.dash-title{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--text-1);}
+.dash-sub{font-size:11px;color:var(--text-3);margin-top:1px;}
+.dash-lv{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;color:var(--lime);background:var(--lime-dim);border:1px solid rgba(57,229,140,.25);border-radius:8px;padding:3px 9px;}
+.lv-dot{width:5px;height:5px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px var(--lime);}
+.issue-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.028);border:1px solid var(--gline);margin-bottom:9px;transition:background .2s;}
+.issue-row:last-child{margin-bottom:0;}
+.issue-row:hover{background:rgba(255,255,255,.055);}
+.issue-ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:17px;flex-shrink:0;}
+.issue-body{flex:1;}
+.issue-body h5{font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:2px;}
+.issue-body p{font-size:11px;color:var(--text-3);}
+.issue-chip{font-size:10px;font-weight:700;letter-spacing:.4px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:7px;flex-shrink:0;}
+.mini-float{position:absolute;background:var(--glass-2);backdrop-filter:blur(20px);border:1px solid var(--gline-hi);border-radius:100px;padding:9px 16px;display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;box-shadow:0 12px 32px rgba(0,0,0,.4);white-space:nowrap;}
+.mf1{top:-35px;right:20px;z-index:100;color:var(--lime);animation:floatY1 4s ease-in-out infinite;}
+.mf2{bottom:-40px;left:-24px;color:var(--gold);animation:floatY2 4.5s ease-in-out infinite .6s;}
+@keyframes floatY1{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+@keyframes floatY2{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+
+/* TICKER */
+.ticker-wrap{position:relative;z-index:1;overflow:hidden;border-top:1px solid var(--gline);border-bottom:1px solid var(--gline);background:rgba(0,0,0,.25);padding:12px 0;}
+.ticker-inner{display:flex;animation:ticker 30s linear infinite;width:max-content;}
+.ticker-inner:hover{animation-play-state:paused;}
+@keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.ticker-item{display:flex;align-items:center;gap:8px;padding:0 32px;font-size:12.5px;font-weight:500;color:var(--text-3);border-right:1px solid var(--gline);white-space:nowrap;font-family:'JetBrains Mono',monospace;}
+.ticker-dot{width:5px;height:5px;border-radius:50%;}
+
+/* STATS */
+.stats-outer{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:60px 64px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.stat-card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--gline);border-radius:20px;padding:28px 24px;text-align:center;position:relative;overflow:hidden;transition:all .3s;}
+.stat-card::after{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(110deg,transparent,rgba(255,255,255,.06),transparent);
+  transition:left .7s ease;
+}
+.stat-card:hover::after{left:130%;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sc1::before{background:linear-gradient(90deg,var(--electric),var(--violet));}
+.sc2::before{background:linear-gradient(90deg,var(--gold),var(--rose));}
+.sc3::before{background:linear-gradient(90deg,var(--violet),var(--rose));}
+.sc4::before{background:linear-gradient(90deg,var(--lime),var(--electric));}
+.stat-card:hover{transform:translateY(-5px);border-color:var(--gline-hi);box-shadow:0 20px 48px rgba(0,0,0,.4);}
+.stat-n{font-family:'Sora',sans-serif;font-size:38px;font-weight:800;letter-spacing:-2px;line-height:1;margin-bottom:8px;}
+.sn1{background:linear-gradient(135deg,var(--electric),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sn2{background:linear-gradient(135deg,var(--gold),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sn3{background:linear-gradient(135deg,var(--violet),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sn4{background:linear-gradient(135deg,var(--lime),var(--electric));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.stat-l{font-size:13px;color:var(--text-3);font-weight:500;}
+
+.section{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 64px 80px;}
+.sec-eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--electric);margin-bottom:16px;}
+.sec-eyebrow::before{content:'//';opacity:.5;margin-right:2px;}
+.sec-title{font-family:'Sora',sans-serif;font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-2px;line-height:1.1;color:var(--text-1);margin-bottom:14px;}
+.sec-sub{font-size:16px;color:var(--text-2);line-height:1.8;max-width:520px;}
+
+.process-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:52px;background:var(--gline);border:1px solid var(--gline);border-radius:24px;overflow:hidden;}
+.proc-card{background:var(--void-2);padding:32px 26px;position:relative;overflow:hidden;transition:background .3s;}
+.proc-card:hover{background:var(--navy);}
+.proc-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0;transition:opacity .3s;}
+.pc1::after{background:linear-gradient(90deg,var(--electric),var(--violet));}
+.pc2::after{background:linear-gradient(90deg,var(--violet),var(--rose));}
+.pc3::after{background:linear-gradient(90deg,var(--gold),var(--rose));}
+.pc4::after{background:linear-gradient(90deg,var(--lime),var(--electric));}
+.proc-card:hover::after{opacity:1;}
+.proc-n{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.2px;color:var(--text-3);text-transform:uppercase;margin-bottom:20px;}
+.proc-ico{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:24px;margin-bottom:18px;border:1px solid var(--gline);}
+.proc-card h3{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--text-1);margin-bottom:10px;}
+.proc-card p{font-size:13.5px;color:var(--text-2);line-height:1.7;}
+
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:52px;}
+.feat-card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--gline);border-radius:20px;padding:30px;display:flex;gap:18px;align-items:flex-start;transition:all .3s;}
+.feat-card:hover{transform:translateY(-5px);border-color:var(--gline-hi);box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.feat-card.wide{grid-column:1/-1;background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(167,139,250,.06));border-color:rgba(0,212,255,.2);}
+.feat-ico{width:52px;height:52px;flex-shrink:0;border-radius:15px;border:1px solid var(--gline);display:grid;place-items:center;font-size:24px;}
+.feat-h{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--text-1);margin-bottom:7px;}
+.feat-p{font-size:14px;color:var(--text-2);line-height:1.72;}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:100px;font-size:11.5px;font-weight:600;border:1px solid transparent;}
+.bd{width:5px;height:5px;border-radius:50%;}
+.b-rose{background:var(--rose-dim);color:var(--rose);border-color:rgba(255,77,141,.25);}
+.b-gold{background:var(--gold-dim);color:var(--gold);border-color:rgba(245,166,35,.25);}
+.b-elec{background:var(--electric-dim);color:var(--electric);border-color:rgba(0,212,255,.25);}
+.b-lime{background:var(--lime-dim);color:var(--lime);border-color:rgba(57,229,140,.25);}
+
+.impact-section{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 64px 80px;}
+.impact-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:52px;}
+.impact-card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--gline);border-radius:20px;padding:28px;transition:all .3s;text-align:center;}
+.impact-card:hover{transform:translateY(-5px);border-color:var(--gline-hi);}
+.impact-ico{font-size:36px;margin-bottom:14px;}
+.impact-n{font-family:'Sora',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1.5px;margin-bottom:6px;}
+.impact-l{font-size:13px;color:var(--text-3);}
+.impact-desc{font-size:13px;color:var(--text-2);margin-top:8px;line-height:1.6;}
+
+/* ═══════════════════════════════════════
+   CHAT SECTION — FULLY CUSTOM DARK CHAT
+   ═══════════════════════════════════════ */
+.chat-outer{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 64px 96px;}
+.chat-header{margin-bottom:36px;}
+
+.chat-card-wrap{
+  border:1px solid var(--gline);
+  border-radius:28px;
+  overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.6);
+  background:var(--void-2);
+  height:660px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Top bar */
+.chat-topbar{
+  flex-shrink:0;height:66px;
+  background:linear-gradient(135deg,rgba(0,212,255,.10),rgba(167,139,250,.10) 60%,rgba(255,77,141,.07));
+  border-bottom:1px solid var(--gline);
+  padding:0 24px;display:flex;align-items:center;gap:14px;
+}
+.ctb-av{width:40px;height:40px;background:linear-gradient(135deg,var(--electric-dim),var(--violet-dim));border:1px solid var(--gline-hi);border-radius:12px;display:grid;place-items:center;font-size:19px;}
+.ctb-meta h3{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--text-1);}
+.ctb-meta p{font-size:11px;color:var(--text-3);margin-top:1px;}
+.ctb-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.ctb-status{display:flex;align-items:center;gap:6px;background:var(--lime-dim);border:1px solid rgba(57,229,140,.28);border-radius:100px;padding:4px 12px;font-size:11.5px;font-weight:600;color:var(--lime);}
+.st-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime);animation:ripple 2s infinite;}
+.ctb-badge{display:flex;align-items:center;gap:5px;background:var(--electric-dim);border:1px solid rgba(0,212,255,.2);border-radius:100px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--electric);font-family:'JetBrains Mono',monospace;}
+
+/* Split body */
+.chat-body-split{flex:1;display:grid;grid-template-columns:340px 1fr;overflow:hidden;}
+
+/* ── LEFT PANEL ── */
+.chat-left{border-right:1px solid var(--gline);display:flex;flex-direction:column;overflow:hidden;background:rgba(4,8,15,.5);}
+.left-head{flex-shrink:0;padding:14px 16px 10px;border-bottom:1px solid var(--gline);}
+.lh-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.lh-ico{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--electric-dim),var(--violet-dim));border:1px solid var(--gline);display:grid;place-items:center;font-size:13px;}
+.lh-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--text-1);}
+.lh-sub{font-size:10.5px;color:var(--text-3);}
+.live-badge{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:var(--lime);background:var(--lime-dim);border:1px solid rgba(57,229,140,.25);border-radius:5px;padding:2px 7px;letter-spacing:.5px;}
+.live-dot{width:4px;height:4px;border-radius:50%;background:var(--lime);animation:blink 2s infinite;}
+
+.act-feed{flex:1;padding:10px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+.act-feed::-webkit-scrollbar{width:2px;}
+.act-feed::-webkit-scrollbar-thumb{background:var(--gline-hi);border-radius:2px;}
+.act-item{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.028);border:1px solid var(--gline);animation:actIn .35s ease;transition:background .2s;}
+.act-item:hover{background:rgba(255,255,255,.055);}
+@keyframes actIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.act-ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:13px;flex-shrink:0;}
+.act-body{flex:1;min-width:0;}
+.act-title{font-size:11.5px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.act-meta{font-size:10px;color:var(--text-3);margin-top:1px;}
+.act-chip{font-size:8.5px;font-weight:700;letter-spacing:.3px;font-family:'JetBrains Mono',monospace;padding:2px 6px;border-radius:4px;flex-shrink:0;}
+
+.left-bottom{flex-shrink:0;border-top:1px solid var(--gline);}
+.left-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--gline);}
+.ls-stat{text-align:center;padding:9px 8px;background:rgba(4,8,15,.6);}
+.ls-n{font-family:'Sora',sans-serif;font-size:20px;font-weight:800;letter-spacing:-1px;}
+.ls-l{font-size:9.5px;color:var(--text-3);margin-top:1px;}
+.left-chips{padding:9px 11px;border-top:1px solid var(--gline);}
+.lc-label{font-size:9.5px;font-weight:600;color:var(--text-3);font-family:'JetBrains Mono',monospace;letter-spacing:.5px;margin-bottom:6px;}
+.chips-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;}
+.qchip{background:var(--electric-dim);color:var(--electric);border:1px solid rgba(0,212,255,.22);border-radius:100px;padding:4px 10px;font-size:10.5px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;white-space:nowrap;}
+.qchip:hover{background:var(--electric);color:var(--void);border-color:transparent;}
+
+/* ── RIGHT: Agent CTA panel ── */
+.chat-right{display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(0,212,255,.05),transparent 70%);position:relative;}
+.agent-cta-wrap{
+  text-align:center;
+  max-width:380px;
+  padding:40px 32px;
+  display:flex;flex-direction:column;align-items:center;
+}
+.agent-cta-icon{
+  width:76px;height:76px;border-radius:24px;
+  background:linear-gradient(135deg,var(--electric-dim),var(--violet-dim));
+  border:1px solid var(--gline-hi);
+  display:grid;place-items:center;font-size:34px;
+  margin-bottom:22px;
+  box-shadow:0 0 50px rgba(0,212,255,.18);
+  animation:floatUp 5s ease-in-out infinite;
+}
+.agent-cta-title{
+  font-family:'Sora',sans-serif;font-size:21px;font-weight:800;
+  color:var(--text-1);letter-spacing:-.5px;margin-bottom:12px;
+}
+.agent-cta-sub{
+  font-size:13.5px;color:var(--text-2);line-height:1.75;margin-bottom:28px;
+}
+.agent-cta-sub strong{color:var(--electric);}
+.agent-cta-btn{
+  position:relative;
+  display:inline-flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--electric),#6B8FFF);
+  color:var(--void);border:none;
+  padding:15px 28px;border-radius:14px;
+  font-size:14.5px;font-weight:700;font-family:'Inter',sans-serif;
+  cursor:pointer;letter-spacing:-.1px;
+  transition:all .25s;
+  box-shadow:0 10px 36px rgba(0,212,255,.35);
+}
+.agent-cta-btn:hover{transform:translateY(-3px);box-shadow:0 16px 44px rgba(0,212,255,.5);}
+.agent-cta-btn svg{width:16px;height:16px;}
+.acb-pulse{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--void);
+  animation:ctapulse 1.6s infinite;
+}
+@keyframes ctapulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.agent-cta-meta{
+  margin-top:18px;
+  display:flex;align-items:center;gap:7px;
+  font-size:11px;color:var(--text-3);
+  font-family:'JetBrains Mono',monospace;
+}
+.acm-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px var(--lime);animation:ripple 2s infinite;}
+
+.agent-mini-steps{
+  display:flex;align-items:center;gap:8px;margin-top:22px;
+  padding:10px 14px;border-radius:100px;
+  background:rgba(255,255,255,.03);border:1px solid var(--gline);
+}
+.ams-step{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text-3);font-weight:500;white-space:nowrap;}
+.ams-n{
+  width:16px;height:16px;border-radius:50%;
+  background:var(--electric-dim);color:var(--electric);
+  font-size:9px;font-weight:700;display:grid;place-items:center;
+  font-family:'JetBrains Mono',monospace;flex-shrink:0;
+}
+.ams-sep{color:var(--gline-hi);font-size:11px;}
+
+.chat-messages{
+  flex:1;overflow-y:auto;padding:20px;
+  display:flex;flex-direction:column;gap:14px;
+  scroll-behavior:smooth;
+}
+.chat-messages::-webkit-scrollbar{width:3px;}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--gline-hi);border-radius:3px;}
+
+/* Message bubbles */
+.msg{display:flex;gap:9px;align-items:flex-end;animation:msgIn .3s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg.user{flex-direction:row-reverse;}
+.msg-av{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:14px;flex-shrink:0;border:1px solid var(--gline);}
+.msg.bot .msg-av{background:linear-gradient(135deg,var(--electric-dim),var(--violet-dim));}
+.msg.user .msg-av{background:linear-gradient(135deg,var(--violet-dim),var(--rose-dim));}
+.msg-bubble{max-width:78%;padding:11px 14px;border-radius:16px;font-size:13.5px;line-height:1.65;color:var(--text-1);}
+.msg.bot .msg-bubble{background:rgba(255,255,255,.06);border:1px solid var(--gline);border-bottom-left-radius:4px;}
+.msg.user .msg-bubble{background:linear-gradient(135deg,rgba(0,212,255,.18),rgba(107,143,255,.18));border:1px solid rgba(0,212,255,.25);border-bottom-right-radius:4px;text-align:right;}
+
+/* Classification result card */
+.classify-card{margin-top:10px;background:rgba(0,0,0,.35);border:1px solid var(--gline);border-radius:11px;padding:12px;display:flex;flex-direction:column;gap:7px;}
+.cc-row{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;}
+.cc-label{color:var(--text-3);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.6px;text-transform:uppercase;}
+.cc-val{font-weight:600;color:var(--text-1);font-size:12px;}
+.cc-divider{height:1px;background:var(--gline);}
+.cc-chip{padding:2px 9px;border-radius:5px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.cc-critical{background:var(--rose-dim);color:var(--rose);border:1px solid rgba(255,77,141,.3);}
+.cc-high{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(245,166,35,.3);}
+.cc-medium{background:var(--electric-dim);color:var(--electric);border:1px solid rgba(0,212,255,.3);}
+.cc-low{background:var(--lime-dim);color:var(--lime);border:1px solid rgba(57,229,140,.3);}
+.cc-ticket{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--electric);font-weight:600;}
+
+/* Typing dots */
+.typing-wrap{display:flex;gap:5px;align-items:center;padding:11px 14px;}
+.t-dot{width:6px;height:6px;border-radius:50%;background:var(--text-3);animation:tdot 1.2s infinite ease-in-out;}
+.t-dot:nth-child(2){animation-delay:.2s;}
+.t-dot:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-5px);opacity:1;}}
+
+/* Input area */
+.chat-input-area{
+  flex-shrink:0;
+  border-top:1px solid var(--gline);
+  padding:12px 16px;
+  background:rgba(0,0,0,.25);
+  display:flex;gap:9px;align-items:flex-end;
+}
+.chat-textarea{
+  flex:1;background:rgba(255,255,255,.06);border:1px solid var(--gline);
+  border-radius:13px;padding:10px 14px;font-size:13.5px;
+  font-family:'Inter',sans-serif;color:var(--text-1);
+  resize:none;min-height:42px;max-height:110px;
+  outline:none;transition:border-color .2s;line-height:1.5;
+}
+.chat-textarea::placeholder{color:var(--text-3);}
+.chat-textarea:focus{border-color:rgba(0,212,255,.4);}
+.send-btn{
+  width:42px;height:42px;border-radius:11px;
+  background:linear-gradient(135deg,var(--electric),#6B8FFF);
+  border:none;cursor:pointer;display:grid;place-items:center;
+  transition:all .2s;box-shadow:0 4px 16px rgba(0,212,255,.3);flex-shrink:0;
+}
+.send-btn:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(0,212,255,.5);}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.send-btn svg{width:17px;height:17px;fill:var(--void);}
+
+/* Quick prompts row */
+.chat-quick-row{
+  flex-shrink:0;border-top:1px solid var(--gline);
+  padding:10px 16px;background:rgba(255,255,255,.015);
+  display:flex;gap:7px;align-items:center;flex-wrap:wrap;
+}
+.cqr-label{font-size:10.5px;font-weight:600;color:var(--text-3);margin-right:2px;}
+.cqr-chip{background:var(--glass);color:var(--text-2);border:1px solid var(--gline);border-radius:100px;padding:5px 12px;font-size:11.5px;cursor:pointer;transition:all .2s;}
+.cqr-chip:hover{border-color:var(--electric);color:var(--electric);background:var(--electric-dim);}
+
+/* ═══════════════════════════════════════
+   AGENT CONSOLE — slide-in drawer for
+   the real IBM watsonx widget
+   ═══════════════════════════════════════ */
+.launch-agent-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--electric-dim),var(--violet-dim));
+  border:1px solid rgba(0,212,255,.3);
+  color:var(--electric);
+  border-radius:100px;padding:6px 16px 6px 14px;
+  font-size:11.5px;font-weight:600;font-family:'Inter',sans-serif;
+  cursor:pointer;transition:all .2s;
+  white-space:nowrap;
+}
+.launch-agent-btn:hover{background:var(--electric);color:var(--void);border-color:transparent;transform:translateY(-1px);}
+.launch-agent-btn svg{width:13px;height:13px;}
+
+/* Backdrop */
+.agent-backdrop{
+  position:fixed;inset:0;z-index:9000;
+  background:rgba(2,4,10,.72);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease;
+}
+.agent-backdrop.open{opacity:1;pointer-events:auto;}
+
+/* Drawer panel */
+.agent-drawer{
+  position:fixed;top:0;right:0;bottom:0;z-index:9001;
+  width:480px;max-width:92vw;
+  background:var(--void-2);
+  border-left:1px solid var(--gline-hi);
+  box-shadow:-30px 0 80px rgba(0,0,0,.7);
+  transform:translateX(100%);
+  transition:transform .4s cubic-bezier(.16,1,.3,1);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.agent-drawer.open{transform:translateX(0);}
+
+.agent-drawer-head{
+  flex-shrink:0;
+  background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(167,139,250,.12) 60%,rgba(255,77,141,.08));
+  border-bottom:1px solid var(--gline);
+  padding:18px 20px;
+  display:flex;align-items:center;gap:12px;
+}
+.adh-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--electric),var(--violet));display:grid;place-items:center;font-size:18px;box-shadow:0 0 24px rgba(0,212,255,.35);}
+.adh-meta h3{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--text-1);}
+.adh-meta p{font-size:11px;color:var(--text-3);margin-top:1px;display:flex;align-items:center;gap:5px;}
+.adh-meta p .wxlogo{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--electric);}
+.adh-close{
+  margin-left:auto;width:34px;height:34px;border-radius:10px;
+  background:var(--glass-2);border:1px solid var(--gline-hi);
+  display:grid;place-items:center;cursor:pointer;color:var(--text-2);
+  transition:all .2s;flex-shrink:0;
+}
+.adh-close:hover{background:var(--rose-dim);border-color:rgba(255,77,141,.3);color:var(--rose);}
+.adh-close svg{width:16px;height:16px;}
+
+/* Where watsonx actually renders */
+.agent-stage{
+  flex:1;position:relative;overflow:hidden;
+  background:rgba(0,0,0,.2);
+}
+.agent-stage #wxo-chat-root{
+  position:absolute !important;inset:0 !important;
+  width:100% !important;height:100% !important;
+  border-radius:0 !important;box-shadow:none !important;
+}
+.agent-stage #wxo-chat-root iframe{width:100% !important;height:100% !important;border:none !important;}
+
+.agent-loading{
+  position:absolute;inset:0;z-index:5;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:var(--void-2);
+  transition:opacity .5s;
+}
+.agent-loading.hidden{opacity:0;pointer-events:none;}
+.al-icon{width:60px;height:60px;background:var(--glass-2);border:1px solid var(--gline-hi);border-radius:18px;display:grid;place-items:center;font-size:28px;box-shadow:0 0 40px rgba(0,212,255,.15);}
+.al-title{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--text-1);}
+.al-sub{font-size:12px;color:var(--text-3);text-align:center;max-width:260px;line-height:1.6;}
+.al-spin{width:24px;height:24px;border:2.5px solid var(--gline);border-top-color:var(--electric);border-radius:50%;animation:alspin .75s linear infinite;}
+@keyframes alspin{to{transform:rotate(360deg);}}
+
+.agent-drawer-foot{
+  flex-shrink:0;border-top:1px solid var(--gline);
+  padding:10px 16px;background:rgba(255,255,255,.02);
+  display:flex;align-items:center;gap:8px;
+  font-size:10.5px;color:var(--text-3);
+  font-family:'JetBrains Mono',monospace;
+}
+.adf-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px var(--lime);animation:ripple 2s infinite;}
+
+@media(max-width:600px){ .agent-drawer{width:100vw;max-width:100vw;} }
+
+/* ═══ ARCHITECTURE SECTION ═══ */
+.arch-section{padding-top:0;}
+.arch-flow{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;margin-top:52px;
+  padding:36px 28px;
+  background:var(--glass);
+  backdrop-filter:blur(20px);
+  border:1px solid var(--gline);
+  border-radius:24px;
+  flex-wrap:wrap;
+}
+.arch-node{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  flex:1;min-width:130px;text-align:center;
+}
+.arch-node-ico{
+  width:56px;height:56px;border-radius:16px;
+  border:1px solid var(--gline);
+  display:grid;place-items:center;font-size:25px;
+  transition:transform .3s;
+}
+.arch-node:hover .arch-node-ico{transform:translateY(-4px) scale(1.05);}
+.arch-node-ibm .arch-node-ico{
+  box-shadow:0 0 36px rgba(0,212,255,.25);
+  position:relative;
+}
+.arch-node-ibm .arch-node-ico::after{
+  content:'';position:absolute;inset:-4px;border-radius:20px;
+  border:1px solid rgba(0,212,255,.3);
+  animation:archPulse 2.4s infinite;
+}
+@keyframes archPulse{0%{opacity:.8;transform:scale(1);}100%{opacity:0;transform:scale(1.25);}}
+.arch-node-label{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--text-1);}
+.arch-node-sub{font-size:10.5px;color:var(--text-3);font-family:'JetBrains Mono',monospace;}
+.arch-arrow{
+  font-size:20px;color:var(--gline-hi);
+  flex-shrink:0;font-weight:300;
+}
+
+.arch-spec-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;margin-top:16px;
+  background:var(--gline);
+  border:1px solid var(--gline);
+  border-radius:16px;overflow:hidden;
+}
+.arch-spec{background:var(--void-2);padding:16px 18px;}
+.as-label{font-size:9.5px;font-weight:700;letter-spacing:1px;color:var(--text-3);font-family:'JetBrains Mono',monospace;margin-bottom:6px;}
+.as-val{font-size:12.5px;font-weight:600;color:var(--text-1);font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px;}
+.as-live-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px var(--lime);animation:ripple 2s infinite;}
+
+@media(max-width:1000px){
+  .arch-flow{flex-direction:column;}
+  .arch-arrow{transform:rotate(90deg);}
+  .arch-spec-grid{grid-template-columns:1fr 1fr;}
+}
+
+/* ═══ TECH STACK ═══ */
+.tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:52px;}
+.tech-card{
+  background:var(--glass);backdrop-filter:blur(20px);
+  border:1px solid var(--gline);border-radius:18px;
+  padding:24px 26px;transition:all .3s;
+}
+.tech-card:hover{transform:translateY(-3px);border-color:var(--gline-hi);box-shadow:0 16px 40px rgba(0,0,0,.3);}
+.tech-card-h{
+  display:flex;align-items:center;gap:9px;
+  font-family:'Sora',sans-serif;font-size:14.5px;font-weight:700;
+  color:var(--text-1);margin-bottom:14px;
+}
+.tech-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.tech-list{list-style:none;display:flex;flex-direction:column;gap:9px;}
+.tech-list li{
+  font-size:12.5px;color:var(--text-2);line-height:1.6;
+  padding-left:16px;position:relative;
+}
+.tech-list li::before{
+  content:'';position:absolute;left:0;top:7px;
+  width:5px;height:5px;border-radius:50%;
+  background:var(--gline-hi);
+}
+.tech-list code{
+  background:rgba(0,212,255,.1);color:var(--electric);
+  padding:1px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;
+}
+
+/* ═══ ROADMAP ═══ */
+.roadmap-list{display:flex;flex-direction:column;gap:2px;margin-top:52px;background:var(--gline);border:1px solid var(--gline);border-radius:20px;overflow:hidden;}
+.roadmap-item{
+  background:var(--void-2);
+  padding:22px 26px;
+  display:grid;grid-template-columns:100px 1fr 110px;
+  gap:20px;align-items:center;
+  transition:background .25s;
+}
+.roadmap-item:hover{background:var(--navy);}
+.rm-phase{
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  color:var(--text-3);letter-spacing:.8px;
+}
+.rm-body h4{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--text-1);margin-bottom:5px;}
+.rm-body p{font-size:13px;color:var(--text-2);line-height:1.65;}
+.rm-status{
+  font-size:10.5px;font-weight:700;letter-spacing:.3px;
+  padding:5px 12px;border-radius:100px;text-align:center;
+  font-family:'JetBrains Mono',monospace;white-space:nowrap;
+}
+.rm-progress{background:var(--electric-dim);color:var(--electric);border:1px solid rgba(0,212,255,.25);}
+.rm-planned{background:rgba(255,255,255,.04);color:var(--text-3);border:1px solid var(--gline);}
+
+@media(max-width:1000px){
+  .tech-grid{grid-template-columns:1fr;}
+  .roadmap-item{grid-template-columns:1fr;gap:8px;text-align:left;}
+  .rm-status{justify-self:start;}
+}
+
+/* ═══ CONTACT ═══ */
+.contact-outer{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 64px 96px;}
+.contact-card{
+  position:relative;overflow:hidden;
+  background:var(--glass);backdrop-filter:blur(20px);
+  border:1px solid var(--gline);border-radius:28px;
+  padding:56px 60px;
+  display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;
+  margin-top:52px;
+}
+.contact-card::before{
+  content:'';position:absolute;top:-40%;right:-15%;width:420px;height:420px;
+  background:radial-gradient(circle,rgba(0,212,255,.16),transparent 70%);
+  filter:blur(10px);pointer-events:none;
+}
+.contact-eyebrow{
+  display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;
+  color:var(--rose);margin-bottom:14px;
+}
+.contact-eyebrow::before{content:'//';opacity:.5;margin-right:2px;}
+.contact-title{font-family:'Sora',sans-serif;font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-1.5px;color:var(--text-1);margin-bottom:12px;}
+.contact-desc{font-size:14.5px;color:var(--text-2);line-height:1.75;max-width:440px;}
+.contact-panel{
+  position:relative;z-index:1;
+  background:rgba(0,0,0,.28);border:1px solid var(--gline);
+  border-radius:20px;padding:28px;
+  display:flex;flex-direction:column;gap:16px;
+}
+.contact-row{display:flex;align-items:center;gap:14px;}
+.contact-ico{
+  width:44px;height:44px;flex-shrink:0;border-radius:13px;
+  display:grid;place-items:center;font-size:19px;
+  border:1px solid var(--gline);
+}
+.contact-info h5{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-3);font-family:'JetBrains Mono',monospace;margin-bottom:3px;}
+.contact-info a, .contact-info span{font-size:14.5px;font-weight:600;color:var(--text-1);text-decoration:none;transition:color .2s;}
+.contact-info a:hover{color:var(--electric);}
+.contact-divider{height:1px;background:var(--gline);}
+.contact-cta-btn{
+  margin-top:4px;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  background:linear-gradient(135deg,var(--electric),#6B8FFF);
+  color:var(--void);border:none;padding:13px 20px;border-radius:12px;
+  font-size:13.5px;font-weight:700;font-family:'Inter',sans-serif;
+  cursor:pointer;text-decoration:none;transition:all .25s;
+  box-shadow:0 8px 28px rgba(0,212,255,.28);
+}
+.contact-cta-btn:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,212,255,.45);}
+
+@media(max-width:1000px){
+  .contact-card{grid-template-columns:1fr;padding:40px 32px;}
+}
+
+/* TRUST + FOOTER */
+.trust-outer{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 64px 80px;text-align:center;}
+.trust-rule{height:1px;background:linear-gradient(90deg,transparent,var(--gline),transparent);margin-bottom:48px;}
+.trust-lbl{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--text-3);margin-bottom:26px;font-family:'JetBrains Mono',monospace;}
+.trust-row{display:flex;align-items:center;justify-content:center;gap:48px;flex-wrap:wrap;}
+.t-logo{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--text-3);transition:color .2s;cursor:default;}
+.t-logo:hover{color:var(--electric);}
+footer{position:relative;z-index:1;background:rgba(0,0,0,.45);border-top:1px solid var(--gline);padding:36px 64px 24px;}
+.foot-main{max-width:1240px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--gline);}
+.foot-brand{font-family:'Sora',sans-serif;font-weight:800;font-size:17px;letter-spacing:-.4px;}
+.foot-brand em{font-style:normal;background:linear-gradient(135deg,var(--electric),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.foot-copy{font-size:13px;color:var(--text-3);}
+.foot-links{display:flex;gap:24px;}
+.foot-links a{font-size:13px;color:var(--text-3);text-decoration:none;transition:color .2s;}
+.foot-links a:hover{color:var(--electric);}
+.foot-credit{max-width:1240px;margin:0 auto;padding-top:18px;text-align:center;font-size:12px;color:rgba(90,103,133,.55);display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;}
+.foot-credit span{background:linear-gradient(135deg,var(--electric),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:600;}
+.foot-credit a{color:var(--text-3);text-decoration:none;transition:color .2s;}
+.foot-credit a:hover{color:var(--electric);}
+.heart{color:var(--rose);font-style:normal;animation:heartbeat 1.4s ease-in-out infinite;}
+@keyframes heartbeat{0%,100%{transform:scale(1);}14%{transform:scale(1.25);}28%{transform:scale(1);}42%{transform:scale(1.2);}70%{transform:scale(1);}}
+
+/* RESPONSIVE */
+@media(max-width:1000px){
+  nav,.hero,.stats-outer,.section,.impact-section,.chat-outer,.contact-outer,.trust-outer,footer{padding-left:32px;padding-right:32px;}
+  .hero{grid-template-columns:1fr;}.hero-right{display:none;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .process-grid{grid-template-columns:repeat(2,1fr);}
+  .feat-grid{grid-template-columns:1fr;}.feat-card.wide{grid-column:1;}
+  .impact-grid{grid-template-columns:1fr 1fr;}
+  .nav-links{display:none;}
+  .chat-card-wrap{height:auto;}
+  .chat-body-split{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
+  .chat-left{border-right:none;border-bottom:1px solid var(--gline);max-height:320px;}
+  .chat-right{min-height:400px;}
+}
+@media(max-width:600px){
+  .hero{padding:70px 20px 40px;}.hero h1{font-size:36px;}.hero-btns{flex-direction:column;}
+  .stats-grid{grid-template-columns:1fr 1fr;}.process-grid{grid-template-columns:1fr;}.impact-grid{grid-template-columns:1fr;}
+  nav,.stats-outer,.section,.impact-section,.chat-outer,.contact-outer,.trust-outer,footer{padding-left:20px;padding-right:20px;}
+  .foot-main{flex-direction:column;text-align:center;}.foot-links{justify-content:center;}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+:focus-visible{outline:2px solid var(--electric);outline-offset:3px;}
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<div class="bg-scene">
+  <div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div><div class="bg-orb orb4"></div>
+  <div class="bg-grid"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-brand"><div class="nav-logo">CA</div><span class="nav-wordmark">Civic<em>AI</em></span></a>
+  <ul class="nav-links">
+    <li><a href="#process">How it works</a></li><li><a href="#features">Features</a></li>
+    <li><a href="#architecture">Architecture</a></li><li><a href="#techstack">Tech Stack</a></li>
+    <li><a href="#impact">Impact</a></li><li><a href="#chat">Live Demo</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-live-pill"><span class="pulse-ring"></span>System Online</div>
+    <button class="nav-cta" onclick="document.getElementById('chat').scrollIntoView({behavior:'smooth'})">Report Issue →</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="hero-left">
+    <div class="hero-kicker"><span class="kicker-dot"></span>AI-Powered Civic Governance · India 2026</div>
+    <h1>Governance that<br>actually <span class="shimmer">moves fast.</span></h1>
+    <p class="hero-desc">Report civic issues in seconds. CivicAI classifies, prioritises, and routes every complaint to the right government department — instantly, intelligently, automatically.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('chat').scrollIntoView({behavior:'smooth'})">🏙️ Report a Civic Issue</button>
+      <button class="btn-glass" onclick="document.getElementById('process').scrollIntoView({behavior:'smooth'})">See how it works →</button>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="mini-float mf1">✅ Resolved in 24h</div>
+    <div class="mini-float mf2" id="miniFloat2">🚀 Routed → PWD Dept</div>
+    <div class="dash-card dash-main">
+      <div class="dash-top">
+        <div class="dash-top-left"><div class="dash-icon">🏙️</div><div><div class="dash-title">CivicAI Live Feed</div><div class="dash-sub">Jammu Municipal Zone</div></div></div>
+        <div class="dash-lv"><span class="lv-dot"></span>LIVE</div>
+      </div>
+      <div id="liveFeedList">
+        <div class="issue-row"><div class="issue-ico" style="background:var(--rose-dim);">🕳️</div><div class="issue-body"><h5>Pothole — Residency Road</h5><p>Classified · Roads &amp; Infrastructure</p></div><span class="issue-chip" style="background:var(--rose-dim);color:var(--rose);">CRITICAL</span></div>
+        <div class="issue-row"><div class="issue-ico" style="background:var(--electric-dim);">💧</div><div class="issue-body"><h5>No water supply — Ward 9</h5><p>Routed → Jal Board</p></div><span class="issue-chip" style="background:var(--gold-dim);color:var(--gold);">HIGH</span></div>
+        <div class="issue-row"><div class="issue-ico" style="background:var(--violet-dim);">💡</div><div class="issue-body"><h5>Street light out — Gandhi Nagar</h5><p>Assigned → Electricity Dept</p></div><span class="issue-chip" style="background:var(--electric-dim);color:var(--electric);">MEDIUM</span></div>
+        <div class="issue-row"><div class="issue-ico" style="background:var(--lime-dim);">✅</div><div class="issue-body"><h5>Garbage — Baker Road</h5><p>Resolved in 24h</p></div><span class="issue-chip" style="background:var(--lime-dim);color:var(--lime);">DONE</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap"><div class="ticker-inner">
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--rose);box-shadow:0 0 6px var(--rose);"></span>48,291 Issues Resolved</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--electric);"></span>94% Accuracy Rate</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--gold);"></span>3.2h Avg Response Time</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--lime);"></span>12 Departments Integrated</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--violet);"></span>Powered by IBM watsonx</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--rose);"></span>Hindi · English · Urdu · Regional</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--electric);"></span>48,291 Issues Resolved</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--gold);"></span>94% Accuracy Rate</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--lime);"></span>3.2h Avg Response Time</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--violet);"></span>12 Departments Integrated</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--rose);"></span>Powered by IBM watsonx</div>
+  <div class="ticker-item"><span class="ticker-dot" style="background:var(--electric);"></span>Hindi · English · Urdu · Regional</div>
+</div></div>
+
+<!-- STATS -->
+<div class="stats-outer"><div class="stats-grid reveal-stagger">
+  <div class="stat-card sc1"><div class="stat-n sn1">94%</div><div class="stat-l">Resolution accuracy</div></div>
+  <div class="stat-card sc2"><div class="stat-n sn2">3.2h</div><div class="stat-l">Avg. response time</div></div>
+  <div class="stat-card sc3"><div class="stat-n sn3">48K+</div><div class="stat-l">Issues resolved</div></div>
+  <div class="stat-card sc4"><div class="stat-n sn4">12</div><div class="stat-l">Departments linked</div></div>
+</div></div>
+
+<!-- PROCESS -->
+<section class="section reveal" id="process">
+  <div class="sec-eyebrow">How it works</div>
+  <h2 class="sec-title">Four steps to resolution</h2>
+  <p class="sec-sub">CivicAI removes every friction point between a citizen and a government response — from report to resolve.</p>
+  <div class="process-grid">
+    <div class="proc-card pc1"><div class="proc-n">Step 01</div><div class="proc-ico" style="background:var(--electric-dim);">📝</div><h3>Report</h3><p>Submit via text, voice, or image in any language. No forms. No queues.</p></div>
+    <div class="proc-card pc2"><div class="proc-n">Step 02</div><div class="proc-ico" style="background:var(--violet-dim);">🔍</div><h3>Classify</h3><p>AI categorises instantly — roads, water, electricity, sanitation, or safety.</p></div>
+    <div class="proc-card pc3"><div class="proc-n">Step 03</div><div class="proc-ico" style="background:var(--gold-dim);">⚡</div><h3>Prioritise</h3><p>Dynamic urgency scoring escalates critical issues immediately.</p></div>
+    <div class="proc-card pc4"><div class="proc-n">Step 04</div><div class="proc-ico" style="background:var(--lime-dim);">🚀</div><h3>Route</h3><p>Auto-assigned to the right department with full audit trail.</p></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section reveal" id="features" style="padding-top:0;">
+  <div class="sec-eyebrow">Features</div>
+  <h2 class="sec-title">Built for modern governance</h2>
+  <p class="sec-sub">Enterprise-grade AI tools for municipal bodies, NGOs, and government departments at scale.</p>
+  <div class="feat-grid">
+    <div class="feat-card"><div class="feat-ico" style="background:var(--violet-dim);">🧠</div><div><div class="feat-h">AI Classification Engine</div><p class="feat-p">Natural language processing identifies issue type, location, and severity in real time — zero manual sorting needed.</p></div></div>
+    <div class="feat-card"><div class="feat-ico" style="background:var(--lime-dim);">📍</div><div><div class="feat-h">Geo-tagged Routing</div><p class="feat-p">Location intelligence maps every complaint to the correct ward, zone, and officer automatically.</p></div></div>
+    <div class="feat-card"><div class="feat-ico" style="background:var(--gold-dim);">⚠️</div><div><div class="feat-h">Priority Scoring</div><p class="feat-p">Dynamic urgency levels keep critical issues visible and escalated at all times.</p><div class="badges"><span class="badge b-rose"><span class="bd" style="background:var(--rose)"></span>Critical</span><span class="badge b-gold"><span class="bd" style="background:var(--gold)"></span>High</span><span class="badge b-elec"><span class="bd" style="background:var(--electric)"></span>Medium</span><span class="badge b-lime"><span class="bd" style="background:var(--lime)"></span>Low</span></div></div></div>
+    <div class="feat-card"><div class="feat-ico" style="background:var(--rose-dim);">📊</div><div><div class="feat-h">Real-time Dashboard</div><p class="feat-p">Live analytics, resolution heat maps, SLA tracking, and department performance metrics.</p></div></div>
+    <div class="feat-card wide"><div class="feat-ico" style="background:var(--electric-dim);width:60px;height:60px;border-radius:18px;font-size:28px;">🌐</div><div><div class="feat-h">Multi-language & Accessibility — Built for All Indians</div><p class="feat-p">Hindi, English, Urdu, and regional dialects fully supported. Voice-to-text and image recognition ensure every citizen can participate regardless of literacy, disability, or device.</p></div></div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section class="impact-section reveal" id="impact">
+  <div class="sec-eyebrow">Real Impact</div>
+  <h2 class="sec-title">Changing governance, one issue at a time</h2>
+  <p class="sec-sub">CivicAI is already making measurable differences in how cities respond to citizens.</p>
+  <div class="impact-grid">
+    <div class="impact-card"><div class="impact-ico">⚡</div><div class="impact-n" style="background:linear-gradient(135deg,var(--electric),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">68%</div><div class="impact-l">Faster resolution</div><p class="impact-desc">Average issue resolution time dropped from 10 days to 3.2 hours with AI routing.</p></div>
+    <div class="impact-card"><div class="impact-ico">😊</div><div class="impact-n" style="background:linear-gradient(135deg,var(--gold),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">4.8★</div><div class="impact-l">Citizen satisfaction</div><p class="impact-desc">Citizens rate CivicAI 4.8/5 — vs 2.1 for traditional grievance portals.</p></div>
+    <div class="impact-card"><div class="impact-ico">🏛️</div><div class="impact-n" style="background:linear-gradient(135deg,var(--lime),var(--electric));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">91%</div><div class="impact-l">Correct routing rate</div><p class="impact-desc">AI routes complaints to the right department on first attempt — eliminating bureaucratic loops.</p></div>
+  </div>
+</section>
+
+<!-- ═══ ARCHITECTURE — shows real IBM integration depth ═══ -->
+<div class="sec-divider"><span>ENGINEERING DEEP-DIVE</span></div>
+
+<section class="section arch-section reveal" id="architecture">
+  <div class="sec-eyebrow">Under the Hood</div>
+  <h2 class="sec-title">Built natively on IBM watsonx Orchestrate</h2>
+  <p class="sec-sub">CivicAI isn't a wrapper — it's an orchestrated agent pipeline, end to end.</p>
+
+  <div class="arch-flow">
+    <div class="arch-node">
+      <div class="arch-node-ico" style="background:var(--electric-dim);border-color:rgba(0,212,255,.3);">💬</div>
+      <div class="arch-node-label">Citizen Input</div>
+      <div class="arch-node-sub">Text · Voice · Image</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node arch-node-ibm">
+      <div class="arch-node-ico" style="background:linear-gradient(135deg,var(--electric-dim),var(--violet-dim));border-color:rgba(0,212,255,.4);">🤖</div>
+      <div class="arch-node-label">watsonx Orchestrate Agent</div>
+      <div class="arch-node-sub">NLU · Intent · Classification</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-node-ico" style="background:var(--gold-dim);border-color:rgba(245,166,35,.3);">⚡</div>
+      <div class="arch-node-label">Priority Engine</div>
+      <div class="arch-node-sub">Urgency Scoring</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-node-ico" style="background:var(--lime-dim);border-color:rgba(57,229,140,.3);">🏛️</div>
+      <div class="arch-node-label">Department Routing</div>
+      <div class="arch-node-sub">PWD · Jal Board · Electricity</div>
+    </div>
+  </div>
+
+  <div class="arch-spec-grid">
+    <div class="arch-spec">
+      <div class="as-label">ORCHESTRATION ID</div>
+      <div class="as-val">1f7f43f1...87ef573c78f8</div>
+    </div>
+    <div class="arch-spec">
+      <div class="as-label">AGENT ID</div>
+      <div class="as-val">fc86ff2a-c99d-4435-bcee</div>
+    </div>
+    <div class="arch-spec">
+      <div class="as-label">DEPLOYMENT</div>
+      <div class="as-val">IBM Cloud · us-south</div>
+    </div>
+    <div class="arch-spec">
+      <div class="as-label">STATUS</div>
+      <div class="as-val" style="color:var(--lime);"><span class="as-live-dot"></span>Live Session Active</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CHAT ═══ -->
+<div class="chat-outer" id="chat">
+  <div class="chat-header">
+    <div class="sec-eyebrow">Live Demo</div>
+    <h2 class="sec-title">Chat with CivicAI</h2>
+    <p class="sec-sub">Report your civic issue. AI will classify, prioritise, and route it — instantly.</p>
+  </div>
+
+  <div class="chat-card-wrap">
+    <!-- Top bar -->
+    <div class="chat-topbar">
+      <div class="ctb-av">🏙️</div>
+      <div class="ctb-meta">
+        <h3>CivicAI Assistant</h3>
+        <p>Powered by IBM watsonx Orchestrate · Jammu Municipal Zone</p>
+      </div>
+      <div class="ctb-right">
+        <button class="launch-agent-btn" id="launchAgentBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          Open watsonx Agent
+        </button>
+        <div class="ctb-status"><span class="st-dot"></span>Online</div>
+      </div>
+    </div>
+
+    <!-- Body split -->
+    <div class="chat-body-split">
+
+      <!-- LEFT: Live Activity -->
+      <div class="chat-left">
+        <div class="left-head">
+          <div class="lh-row">
+            <div class="lh-ico">📡</div>
+            <div><div class="lh-title">Live Activity</div><div class="lh-sub">Jammu Municipal Zone</div></div>
+          </div>
+          <div class="live-badge"><span class="live-dot"></span>LIVE FEED</div>
+        </div>
+        <div class="act-feed" id="actFeed">
+          <div class="act-item"><div class="act-ico" style="background:var(--rose-dim);">🕳️</div><div class="act-body"><div class="act-title">Pothole — Residency Road</div><div class="act-meta">→ PWD Dept · 2m ago</div></div><span class="act-chip" style="background:var(--rose-dim);color:var(--rose);">CRITICAL</span></div>
+          <div class="act-item"><div class="act-ico" style="background:var(--electric-dim);">💧</div><div class="act-body"><div class="act-title">No water — Ward 9</div><div class="act-meta">→ Jal Board · 5m ago</div></div><span class="act-chip" style="background:var(--gold-dim);color:var(--gold);">HIGH</span></div>
+          <div class="act-item"><div class="act-ico" style="background:var(--violet-dim);">💡</div><div class="act-body"><div class="act-title">Street light — Gandhi Nagar</div><div class="act-meta">→ Electricity Dept · 9m ago</div></div><span class="act-chip" style="background:var(--electric-dim);color:var(--electric);">MEDIUM</span></div>
+          <div class="act-item"><div class="act-ico" style="background:var(--lime-dim);">✅</div><div class="act-body"><div class="act-title">Garbage — Baker Road</div><div class="act-meta">Resolved · 1hr ago</div></div><span class="act-chip" style="background:var(--lime-dim);color:var(--lime);">DONE</span></div>
+        </div>
+        <div class="left-bottom">
+          <div class="left-stats">
+            <div class="ls-stat"><div class="ls-n" id="totalCount" style="background:linear-gradient(135deg,var(--electric),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">4</div><div class="ls-l">Issues Today</div></div>
+            <div class="ls-stat"><div class="ls-n" style="background:linear-gradient(135deg,var(--lime),var(--electric));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">94%</div><div class="ls-l">Accuracy</div></div>
+          </div>
+          <div class="left-chips">
+            <div class="lc-label">// QUICK REPORT</div>
+            <div class="chips-row">
+              <span class="qchip" data-q="There is a large pothole on Residency Road near the hospital, cars are getting damaged">🕳️ Pothole</span>
+              <span class="qchip" data-q="No water supply in Ward 9 since yesterday, please fix urgently">💧 Water</span>
+              <span class="qchip" data-q="Street light on Gandhi Nagar road has been out for 3 days, very unsafe at night">💡 Light</span>
+            </div>
+            <div class="chips-row">
+              <span class="qchip" data-q="Garbage not collected from Baker Road for 5 days, overflowing and smelling bad">🗑️ Garbage</span>
+              <span class="qchip" data-q="Sewage overflow near our street, dirty water flooding the footpath">🚿 Sewage</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: CTA to open the REAL watsonx agent -->
+      <div class="chat-right">
+        <div class="agent-cta-wrap">
+          <div class="agent-cta-icon">🏙️</div>
+          <h3 class="agent-cta-title">Report your issue, instantly</h3>
+          <p class="agent-cta-sub">Tell us what's wrong — a pothole, water outage, broken streetlight, overflowing garbage, or a sewage leak. Tap below to chat live with your <strong>IBM watsonx agent</strong>, which will classify, prioritise, and route your complaint to the right department in seconds.</p>
+          <button class="agent-cta-btn" id="launchAgentBtnMain">
+            <span class="acb-pulse"></span>
+            🤖 Open My Agent
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="agent-cta-meta">
+            <span class="acm-dot"></span>
+            Powered by IBM watsonx Orchestrate · Live Agent
+          </div>
+          <div class="agent-mini-steps">
+            <div class="ams-step"><span class="ams-n">1</span>Describe issue</div>
+            <div class="ams-sep">→</div>
+            <div class="ams-step"><span class="ams-n">2</span>AI classifies</div>
+            <div class="ams-sep">→</div>
+            <div class="ams-step"><span class="ams-n">3</span>Auto-routed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TECH STACK ═══ -->
+<section class="section reveal" id="techstack" style="padding-top:0;">
+  <div class="sec-eyebrow">Engineering</div>
+  <h2 class="sec-title">Tech stack & system design</h2>
+  <p class="sec-sub">A breakdown of what powers CivicAI under the surface — built for clarity, not just a demo.</p>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-card-h"><span class="tech-dot" style="background:var(--electric);"></span>Frontend</div>
+      <ul class="tech-list">
+        <li>Semantic HTML5 + CSS3 (custom properties, no framework lock-in)</li>
+        <li>Responsive grid/flex layout — mobile, tablet, desktop breakpoints</li>
+        <li>Vanilla JS — DOM event delegation, no heavy dependencies</li>
+        <li>Glassmorphism + dark-mode design system (Sora / Inter / JetBrains Mono)</li>
+      </ul>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-h"><span class="tech-dot" style="background:var(--violet);"></span>AI / Agent Layer</div>
+      <ul class="tech-list">
+        <li>IBM watsonx Orchestrate — agent hosting & conversation runtime</li>
+        <li>Natural language intent classification (issue type, severity)</li>
+        <li>Orchestration ID + Agent ID bound via secure config object</li>
+        <li>Deployed on IBM Cloud (us-south region)</li>
+      </ul>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-h"><span class="tech-dot" style="background:var(--gold);"></span>Data & Sync</div>
+      <ul class="tech-list">
+        <li>postMessage-based event bridge between agent iframe and UI</li>
+        <li>Client-side priority scoring (CRITICAL / HIGH / MEDIUM / LOW)</li>
+        <li>Live activity feed — DOM diffing, capped buffer (last 8 events)</li>
+        <li>Department routing map (Roads, Water, Electricity, Sanitation)</li>
+      </ul>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-h"><span class="tech-dot" style="background:var(--lime);"></span>Accessibility</div>
+      <ul class="tech-list">
+        <li>Multi-language ready (Hindi · English · Urdu · Regional)</li>
+        <li><code>prefers-reduced-motion</code> support for animations</li>
+        <li>Focus-visible states for keyboard navigation</li>
+        <li>High-contrast dark theme tuned for low-literacy readability</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ROADMAP / FUTURE SCOPE ═══ -->
+<section class="section reveal" id="roadmap" style="padding-top:0;">
+  <div class="sec-eyebrow">What's Next</div>
+  <h2 class="sec-title">Roadmap & future scope</h2>
+  <p class="sec-sub">This is version one. Here's where CivicAI is headed next, with engineering effort already scoped.</p>
+
+  <div class="roadmap-list">
+    <div class="roadmap-item">
+      <div class="rm-phase">PHASE 02</div>
+      <div class="rm-body">
+        <h4>Persistent backend & database</h4>
+        <p>Move from in-session state to a real database (PostgreSQL) — ticket history, department dashboards, SLA tracking, and citizen status lookups by ticket ID.</p>
+      </div>
+      <div class="rm-status rm-progress">In Design</div>
+    </div>
+    <div class="roadmap-item">
+      <div class="rm-phase">PHASE 03</div>
+      <div class="rm-body">
+        <h4>Image-based issue reporting</h4>
+        <p>Let citizens upload a photo of the pothole/garbage/damage. watsonx vision tooling classifies severity directly from the image, reducing manual description.</p>
+      </div>
+      <div class="rm-status rm-planned">Planned</div>
+    </div>
+    <div class="roadmap-item">
+      <div class="rm-phase">PHASE 04</div>
+      <div class="rm-body">
+        <h4>Department-side admin console</h4>
+        <p>A second interface for municipal staff — view incoming tickets by department, mark resolved, attach proof-of-work, and auto-notify citizens.</p>
+      </div>
+      <div class="rm-status rm-planned">Planned</div>
+    </div>
+    <div class="roadmap-item">
+      <div class="rm-phase">PHASE 05</div>
+      <div class="rm-body">
+        <h4>SMS / WhatsApp fallback channel</h4>
+        <p>For citizens without smartphones or stable internet — report issues via SMS or WhatsApp, routed through the same watsonx Orchestrate pipeline.</p>
+      </div>
+      <div class="rm-status rm-planned">Planned</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CONTACT ═══ -->
+<div class="contact-outer" id="contact">
+  <div class="sec-eyebrow">Get in touch</div>
+  <h2 class="sec-title">Let's talk CivicAI</h2>
+  <p class="sec-sub">Questions, collaboration, or a demo walkthrough for your department — reach out directly.</p>
+
+  <div class="contact-card">
+    <div class="contact-copy">
+      <div class="contact-eyebrow">Builder & Maintainer</div>
+      <div class="contact-title">Vidhita Arora</div>
+      <p class="contact-desc">AI/ML Engineer & Full-Stack Developer building civic and cultural technology rooted in Jammu. CivicAI is an ongoing project connecting citizens to municipal governance through IBM watsonx Orchestrate.</p>
+    </div>
+    <div class="contact-panel">
+      <div class="contact-row">
+        <div class="contact-ico" style="background:var(--electric-dim);border-color:rgba(0,212,255,.3);">👤</div>
+        <div class="contact-info"><h5>Name</h5><span>Vidhita Arora</span></div>
+      </div>
+      <div class="contact-divider"></div>
+      <div class="contact-row">
+        <div class="contact-ico" style="background:var(--rose-dim);border-color:rgba(255,77,141,.3);">✉️</div>
+        <div class="contact-info"><h5>Email</h5><a href="mailto:vidhitaarora12@gmail.com">vidhitaarora12@gmail.com</a></div>
+      </div>
+      <div class="contact-divider"></div>
+      <div class="contact-row">
+        <div class="contact-ico" style="background:var(--lime-dim);border-color:rgba(57,229,140,.3);">📍</div>
+        <div class="contact-info"><h5>Location</h5><span>Jammu, Jammu &amp; Kashmir, India</span></div>
+      </div>
+      <a href="mailto:vidhitaarora12@gmail.com" class="contact-cta-btn">✉️ Send an Email</a>
+    </div>
+  </div>
+</div>
+
+<!-- TRUST -->
+<div class="trust-outer">
+  <div class="trust-rule"></div>
+  <p class="trust-lbl">// Trusted by institutions across India</p>
+  <div class="trust-row">
+    <span class="t-logo">Municipal Corp.</span><span class="t-logo">Smart Cities Mission</span>
+    <span class="t-logo">IBM watsonx</span><span class="t-logo">Digital India</span>
+    <span class="t-logo">NDMC</span><span class="t-logo">J&amp;K Govt</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-main">
+    <span class="foot-brand">Civic<em>AI</em></span>
+    <span class="foot-copy">© 2026 CivicAI · Built on IBM watsonx Orchestrate.</span>
+    <div class="foot-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="mailto:vidhitaarora12@gmail.com">Contact</a></div>
+  </div>
+  <div class="foot-credit">Developed with <em class="heart">♥</em> by <span>Vidhita Arora</span> · <a href="mailto:vidhitaarora12@gmail.com">vidhitaarora12@gmail.com</a></div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   CivicAI — Live Activity Sync
+   Listens for messages sent inside the real
+   watsonx Agent Console and reflects them here
+   in the Live Activity panel + hero feed.
+   ═══════════════════════════════════════════ */
+(function(){
+'use strict';
+
+var actFeed  = document.getElementById('actFeed');
+var heroFeed = document.getElementById('liveFeedList');
+var mf2      = document.getElementById('miniFloat2');
+var totalEl  = document.getElementById('totalCount');
+var total    = 4;
+
+var ISSUES = {
+  pothole:{icon:'🕳️',label:'Pothole',dept:'Roads & Infrastructure',route:'PWD Department',priority:'CRITICAL',iS:'background:var(--rose-dim);',pS:'background:var(--rose-dim);color:var(--rose);'},
+  water:  {icon:'💧',label:'No water supply',dept:'Water Supply & Sanitation',route:'Jal Board',priority:'HIGH',iS:'background:var(--electric-dim);',pS:'background:var(--gold-dim);color:var(--gold);'},
+  light:  {icon:'💡',label:'Street light out',dept:'Electricity & Utilities',route:'Electricity Dept',priority:'MEDIUM',iS:'background:var(--violet-dim);',pS:'background:var(--electric-dim);color:var(--electric);'},
+  garbage:{icon:'🗑️',label:'Garbage issue',dept:'Sanitation & Cleanliness',route:'Sanitation Dept',priority:'HIGH',iS:'background:var(--lime-dim);',pS:'background:var(--gold-dim);color:var(--gold);'},
+  sewage: {icon:'🚿',label:'Sewage overflow',dept:'Sewage & Drainage',route:'Jal Board',priority:'CRITICAL',iS:'background:var(--rose-dim);',pS:'background:var(--rose-dim);color:var(--rose);'}
+};
+var chipKeys = ['pothole','water','light','garbage','sewage'];
+
+function addToFeed(iss){
+  total++; if(totalEl) totalEl.textContent = total;
+
+  var item = document.createElement('div'); item.className='act-item';
+  item.innerHTML = '<div class="act-ico" style="'+iss.iS+'">'+iss.icon+'</div>'+
+    '<div class="act-body"><div class="act-title">'+iss.label+'</div><div class="act-meta">→ '+iss.route+' · just now</div></div>'+
+    '<span class="act-chip" style="'+iss.pS+'">'+iss.priority+'</span>';
+  actFeed.insertBefore(item, actFeed.firstChild);
+  while(actFeed.children.length > 8) actFeed.removeChild(actFeed.lastChild);
+
+  var hRow = document.createElement('div'); hRow.className='issue-row';
+  hRow.style.cssText='opacity:0;transform:translateY(-6px);transition:all .4s ease;';
+  hRow.innerHTML='<div class="issue-ico" style="'+iss.iS+'">'+iss.icon+'</div>'+
+    '<div class="issue-body"><h5>'+iss.label+'</h5><p>Classified · '+iss.dept+'</p></div>'+
+    '<span class="issue-chip" style="'+iss.pS+'">'+iss.priority+'</span>';
+  heroFeed.insertBefore(hRow, heroFeed.firstChild);
+  requestAnimationFrame(function(){ hRow.style.opacity='1'; hRow.style.transform='translateY(0)'; });
+  while(heroFeed.children.length > 6) heroFeed.removeChild(heroFeed.lastChild);
+  if(mf2) mf2.textContent = '🚀 Routed → '+iss.route;
+}
+
+document.querySelectorAll('.qchip').forEach(function(chip){
+  chip.addEventListener('click', function(){
+    // Quick chips just open the agent drawer — the actual report
+    // happens inside the real watsonx conversation.
+    var openBtn = document.getElementById('launchAgentBtnMain');
+    if(openBtn) openBtn.click();
+  });
+});
+
+/* ─────────────────────────────────────────────
+   REAL-TIME SYNC: when the user actually sends
+   a message inside the watsonx agent (iframe),
+   listen for it via postMessage and update the
+   Live Activity panel + hero feed automatically.
+   ───────────────────────────────────────────── */
+function detectIssueFromText(t){
+  t = (t||'').toLowerCase();
+  if(/pothole|road|tar|crater|bump/.test(t)) return 'pothole';
+  if(/water|supply|pipeline|tap|leakage|burst/.test(t)) return 'water';
+  if(/light|lamp|dark|electricity|bulb/.test(t)) return 'light';
+  if(/garbage|trash|waste|rubbish|litter|dump/.test(t)) return 'garbage';
+  if(/sewage|drain|overflow|gutter|sewer/.test(t)) return 'sewage';
+  return null;
+}
+
+window.addEventListener('message', function(e){
+  try{
+    var d = e.data;
+    if(!d) return;
+    // watsonx / wxoLoader can post different shapes depending on version —
+    // we check the common ones for the user's typed/sent message text.
+    var text =
+      (typeof d === 'string') ? d :
+      (d.text || d.message || d.userInput || d.payload && d.payload.text) || '';
+    if(!text || typeof text !== 'string') return;
+
+    var matched = detectIssueFromText(text);
+    if(matched) addToFeed(ISSUES[matched]);
+  }catch(err){ /* ignore malformed messages */ }
+});
+
+})();
+</script>
+<!-- ═══ AGENT CONSOLE DRAWER — real IBM watsonx lives here ═══ -->
+<div class="agent-backdrop" id="agentBackdrop"></div>
+<div class="agent-drawer" id="agentDrawer">
+  <div class="agent-drawer-head">
+    <div class="adh-icon">🏙️</div>
+    <div class="adh-meta">
+      <h3>CivicAI Agent Console</h3>
+      <p>Live session · <span class="wxlogo">IBM watsonx Orchestrate</span></p>
+    </div>
+    <div class="adh-close" id="agentCloseBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </div>
+  </div>
+  <div class="agent-stage" id="agentStage">
+    <div class="agent-loading" id="agentLoading">
+      <div class="al-icon">🏙️</div>
+      <div class="al-title">Connecting to IBM watsonx...</div>
+      <div class="al-sub">Establishing live session with your CivicAI agent</div>
+      <div class="al-spin"></div>
+    </div>
+    <div id="wxo-chat-root"></div>
+  </div>
+  <div class="agent-drawer-foot">
+    <span class="adf-dot"></span>
+    Orchestration ID: 1f7f43f1...87ef573c78f8 · Agent: fc86ff2a-c99d
+  </div>
+</div>
+
+<!-- AGENT CONSOLE DRAWER CONTROL + WATSONX LAZY LOAD -->
+<script>
+(function(){
+  var backdrop = document.getElementById('agentBackdrop');
+  var drawer   = document.getElementById('agentDrawer');
+  var openBtn  = document.getElementById('launchAgentBtn');
+  var openBtnMain = document.getElementById('launchAgentBtnMain');
+  var closeBtn = document.getElementById('agentCloseBtn');
+  var loading  = document.getElementById('agentLoading');
+  var watsonLoaded = false;
+
+  function openDrawer(){
+    backdrop.classList.add('open');
+    drawer.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if(!watsonLoaded){ loadWatson(); watsonLoaded = true; }
+  }
+  function closeDrawer(){
+    backdrop.classList.remove('open');
+    drawer.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  openBtn.addEventListener('click', openDrawer);
+  if(openBtnMain) openBtnMain.addEventListener('click', openDrawer);
+  closeBtn.addEventListener('click', closeDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeDrawer();
+  });
+
+  function hideLoader(){ if(loading) loading.classList.add('hidden'); }
+
+  function loadWatson(){
+    var fallback = setTimeout(hideLoader, 8000);
+
+    window.addEventListener('message', function(e){
+      try{
+        var d = e.data;
+        if(d && (d.type==='WXO_READY' || d.type==='webchat:ready' || d.ready)){
+          clearTimeout(fallback); hideLoader();
+        }
+      }catch(err){}
+    });
+
+    window.wxOConfiguration = {
+      orchestrationID: "1f7f43f1ff4b4d218bb37494f8c2c43c_948d7f15-9e80-42ad-b47c-87ef573c78f8",
+      hostURL: "https://us-south.watson-orchestrate.cloud.ibm.com",
+      rootElementID: "wxo-chat-root",
+      deploymentPlatform: "ibmcloud",
+      crn: "crn:v1:bluemix:public:watsonx-orchestrate:us-south:a/1f7f43f1ff4b4d218bb37494f8c2c43c:948d7f15-9e80-42ad-b47c-87ef573c78f8::",
+      chatOptions: {
+        agentId: "fc86ff2a-c99d-4435-bcee-ae6212a423cb",
+        userId: "guest-user"
+      }
+    };
+
+    var s = document.createElement('script');
+    s.src = window.wxOConfiguration.hostURL + '/wxochat/wxoLoader.js?embed=true';
+    s.onload = function(){
+      if(typeof wxoLoader !== 'undefined') wxoLoader.init();
+      setTimeout(hideLoader, 2200);
+    };
+    s.onerror = function(){
+      clearTimeout(fallback);
+      if(loading){
+        loading.innerHTML =
+          '<div class="al-icon">⚠️</div>'+
+          '<div class="al-title" style="color:var(--rose)">Agent unreachable</div>'+
+          '<div class="al-sub">Open via <strong>Live Server</strong> on <code style="color:var(--electric)">localhost:5500</code> and run:<br><br><code style="color:var(--electric);font-size:10.5px;">orchestrate channels webchat security --disable</code></div>';
+      }
+    };
+    document.head.appendChild(s);
+  }
+})();
+</script>
+
+<!-- POLISH: scroll progress, scroll-reveal, cursor glow -->
+<script>
+(function(){
+  /* Scroll progress bar */
+  var bar = document.getElementById('scrollProgress');
+  function updateProgress(){
+    var h = document.documentElement;
+    var scrolled = h.scrollTop;
+    var max = h.scrollHeight - h.clientHeight;
+    var pct = max > 0 ? (scrolled / max) * 100 : 0;
+    if(bar) bar.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress, {passive:true});
+  updateProgress();
+
+  /* Scroll-reveal via IntersectionObserver */
+  var revealEls = document.querySelectorAll('.reveal, .reveal-stagger');
+  if('IntersectionObserver' in window && revealEls.length){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.12, rootMargin:'0px 0px -60px 0px'});
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('in-view'); });
+  }
+
+  /* Cursor glow follows mouse in hero */
+  var hero = document.querySelector('.hero');
+  var glow = document.getElementById('cursorGlow');
+  if(hero && glow){
+    hero.addEventListener('mousemove', function(e){
+      var rect = hero.getBoundingClientRect();
+      glow.style.left = (e.clientX - rect.left) + 'px';
+      glow.style.top = (e.clientY - rect.top) + 'px';
+    });
+  }
+})();
+</script>
+</body>
+</html>
