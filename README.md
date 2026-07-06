@@ -31,7 +31,7 @@ CivicAI is an AI-powered governance assistant that helps citizens report, classi
 - CSS3
 - JavaScript
 - Bootstrap 5
-- 
+ 
 ## 🏛️ Supported Civic Categories
 - Sanitation
 - Roads & Infrastructure
@@ -43,7 +43,7 @@ CivicAI is an AI-powered governance assistant that helps citizens report, classi
 - Environment
 - Traffic
 - Disaster / Emergency
-- 
+ 
 ## 🎯 How It Works
 1. Citizen submits a complaint.
 2. AI understands the complaint.
@@ -59,18 +59,6 @@ CivicAI/
 │── README.md
 │── problemstatement.pdf
 │── projectpresentation.pptx
-
-## ▶️ Running the Project
-
-1. Clone the repository
-
-```
-git clone https://github.com/yourusername/CivicAI.git
-```
-
-2. Open the project folder.
-
-3. Launch `index.html` using Live Server or any web server.
 
 ## 🌟 Future Scope
 
