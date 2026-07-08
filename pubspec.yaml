@@ -1,0 +1,59 @@
+name: civicai_flutter
+description: "CivicAI — AI-Powered Civic Governance Platform (Flutter + Firebase)"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  animated_text_kit: ^4.2.2
+
+  # Firebase
+  firebase_core: ^3.15.2
+  cloud_firestore: ^5.6.12
+
+
+
+
+  # Optional but recommended
+  intl: ^0.19.0
+  flutter_svg: ^2.0.10+1
+  firebase_auth: ^5.7.0
+  firebase_storage: ^12.4.10
+
+  http: ^1.2.2
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # Generates native app icons from assets/logo.png for Android/iOS/Web
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/log.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/log.png"
+    background_color: "#04080F"
+    theme_color: "#00D4FF"
+  windows:
+    generate: true
+    image_path: "assets/log.png"
+  macos:
+    generate: true
+    image_path: "assets/log.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/log.png
